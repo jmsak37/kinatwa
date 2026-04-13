@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinatwa Sacco - Register</title>
+
+    <link rel="stylesheet" href="/kinatwa/static/css/style.css">
+    <link rel="icon" type="image/x-icon" href="/kinatwa/static/assets/kinatwa-icon.ico">
+    <link rel="icon" type="image/png" href="/kinatwa/static/assets/kinatwa-icon.png">
+
+    <style>
+        .toast-wrap {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .toast {
+            min-width: 280px;
+            max-width: 420px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+            margin-bottom: 10px;
+            animation: fadeInOut 3s ease forwards;
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #138a36, #1cad49);
+        }
+        
+        .toast.danger {
+            background: linear-gradient(135deg, #b91c1c, #dc2626);
+        }
+        
+        .toast.warning {
+            background: linear-gradient(135deg, #b45309, #d97706);
+        }
+        
+        .request-popup {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.60);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .request-popup.show {
+            display: flex;
+        }
+        
+        .request-popup-card {
+            width: min(96vw, 520px);
+            background: linear-gradient(135deg, #ffffff, #fbfffc);
+            border-radius: 24px;
+            border: 1px solid #cdeed7;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.24);
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .request-popup-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0b5a24;
+            margin-bottom: 10px;
+        }
+        
+        .request-popup-text {
+            font-size: 15px;
+            color: #163020;
+            line-height: 1.7;
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+        }
+        
+        .request-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        
+        .loading-ring-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 18px 0;
+        }
+        
+        .loading-ring {
+            width: 56px;
+            height: 56px;
+            border: 6px solid #d8f3e1;
+            border-top: 6px solid #138a36;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .countdown-text {
+            font-weight: 700;
+            color: #0b5a24;
+            margin-top: 8px;
+        }
+        
+        .contact-admin-box {
+            margin-top: 16px;
+            border: 1px solid #d8f3e1;
+            border-radius: 16px;
+            padding: 14px;
+            background: linear-gradient(135deg, #f6fff8, #ffffff);
+            display: none;
+        }
+        
+        .contact-admin-box a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-weight: 800;
+            color: #0b5a24;
+        }
+        
+        .contact-admin-box img {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+        }
+        
+        .disable-soft {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            15% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            85% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+        
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="toastWrap" class="toast-wrap"></div>
+
+    <div id="requestPopup" class="request-popup">
+        <div class="request-popup-card">
+            <div class="request-popup-title">Requesting Code From Admin</div>
+            <div id="requestPopupText" class="request-popup-text">Please wait while the main admin reviews your request.</div>
+
+            <div class="loading-ring-wrap" id="loadingRingWrap">
+                <div class="loading-ring"></div>
+            </div>
+
+            <div id="countdownText" class="countdown-text">Waiting: 60s</div>
+
+            <div id="contactAdminBox" class="contact-admin-box">
+                <div style="margin-bottom:10px;">No response yet. You can contact the admin now.</div>
+                <a href="https://wa.me/message/I5NCV7DA56C2N1" target="_blank">
+                    <img src="/kinatwa/static/assets/whatsapp-icon.png" alt="WhatsApp">
+                    <span>WhatsApp Admin - 0769089734</span>
+                </a>
+            </div>
+
+            <div class="request-actions">
+                <button type="button" class="btn secondary" id="requestAgainBtn" style="display:none;">Request Again</button>
+                <button type="button" class="btn danger-btn" id="exitRequestBtn">Exit</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="main-header">
+        <h1>KINATWA SACCO</h1>
+    </header>
+
+    <main class="container">
+        <div class="card form-card">
+            <h2>Create Admin Account</h2>
+            <p>Please enter your username, email, password, and the 6-digit unique code.</p>
+
+            <form id="registerForm">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter username" required>
+
+                <label for="email">Email</label>
+                <input type="text" id="email" name="email" placeholder="Enter email" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter password" required>
+
+                <label for="unique_code">Unique Code (6 digits only)</label>
+                <input type="text" id="unique_code" name="unique_code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" required>
+
+                <br><br>
+                <button type="submit" class="btn" id="createAccountBtn">Create Account</button>
+                <button type="button" class="btn secondary" id="requestCodeBtn">Request From Admin</button>
+                <button type="button" class="btn secondary" id="checkCodeBtn">Check Approved Code</button>
+            </form>
+
+            <div id="registerStatus" style="margin-top:14px;font-weight:700;"></div>
+
+            <br>
+            <a class="btn secondary" href="/kinatwa/login.html">Back to Login</a>
+        </div>
+    </main>
+
+    <script>
+        let requestTimer = null;
+        let requestCountdown = 60;
+        let pollingTimer = null;
+        let requestActive = false;
+
+        function showToast(message, type = "success") {
+            const wrap = document.getElementById("toastWrap");
+            const div = document.createElement("div");
+            div.className = "toast " + type;
+            div.textContent = message;
+            wrap.appendChild(div);
+            setTimeout(() => div.remove(), 3200);
+        }
+
+        function setRequestUi(active) {
+            requestActive = active;
+
+            ["createAccountBtn", "requestCodeBtn", "checkCodeBtn"].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.disabled = active;
+                el.classList.toggle("disable-soft", active);
+            });
+        }
+
+        function openRequestPopup() {
+            document.getElementById("requestPopup").classList.add("show");
+            document.getElementById("requestPopupText").textContent = "Please wait while the main admin reviews your request.";
+            document.getElementById("countdownText").textContent = "Waiting: 60s";
+            document.getElementById("loadingRingWrap").style.display = "flex";
+            document.getElementById("contactAdminBox").style.display = "none";
+            document.getElementById("requestAgainBtn").style.display = "none";
+        }
+
+        function closeRequestPopup() {
+            document.getElementById("requestPopup").classList.remove("show");
+            clearInterval(requestTimer);
+            clearInterval(pollingTimer);
+            requestTimer = null;
+            pollingTimer = null;
+            setRequestUi(false);
+        }
+
+        async function autoLogin(username, password) {
+            const fd = new FormData();
+            fd.append("username", username);
+            fd.append("password", password);
+
+            const res = await fetch("/kinatwa/backend/login.php", {
+                method: "POST",
+                body: fd
+            });
+
+            const data = await res.json();
+            if (data.ok) {
+                showToast("Login successful.", "success");
+                setTimeout(() => {
+                    window.location.href = "/kinatwa/admin.html";
+                }, 1000);
+            } else {
+                showToast(data.message, "danger");
+            }
+        }
+
+        async function autoRegisterAndLogin() {
+            const username = document.getElementById("username").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const uniqueCode = document.getElementById("unique_code").value.trim();
+
+            if (!username || !email || !password || !uniqueCode) {
+                document.getElementById("registerStatus").textContent = "Fill all fields first.";
+                showToast("Fill all fields first.", "warning");
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append("username", username);
+            fd.append("email", email);
+            fd.append("password", password);
+            fd.append("unique_code", uniqueCode);
+
+            const res = await fetch("/kinatwa/backend/register.php", {
+                method: "POST",
+                body: fd
+            });
+
+            const data = await res.json();
+            document.getElementById("registerStatus").textContent = data.message;
+            showToast(data.message, data.ok ? "success" : "danger");
+
+            if (data.ok) {
+                closeRequestPopup();
+                await autoLogin(username, password);
+            }
+        }
+
+        async function pollApprovedCode() {
+            const username = document.getElementById("username").value.trim();
+            const email = document.getElementById("email").value.trim();
+
+            if (!username || !email) return;
+
+            try {
+                const res = await fetch(
+                    "/kinatwa/backend/check_approved_code.php?username=" + encodeURIComponent(username) + "&email=" + encodeURIComponent(email), {
+                        cache: "no-store"
+                    }
+                );
+
+                const data = await res.json();
+
+                if (data.ok && data.status === "approved" && data.code) {
+                    document.getElementById("unique_code").value = data.code;
+                    document.getElementById("requestPopupText").textContent = "Approved by admin. Creating account now...";
+                    document.getElementById("countdownText").textContent = "Approved";
+                    document.getElementById("loadingRingWrap").style.display = "none";
+                    clearInterval(pollingTimer);
+                    clearInterval(requestTimer);
+                    await autoRegisterAndLogin();
+                    return;
+                }
+
+                if (data.ok && data.status === "rejected") {
+                    document.getElementById("requestPopupText").textContent = "The main admin declined your request.";
+                    document.getElementById("countdownText").textContent = "Declined";
+                    document.getElementById("loadingRingWrap").style.display = "none";
+                    clearInterval(pollingTimer);
+                    clearInterval(requestTimer);
+                    document.getElementById("requestAgainBtn").style.display = "inline-block";
+                    return;
+                }
+
+                if (data.ok && data.status === "expired") {
+                    document.getElementById("requestPopupText").textContent = "The request expired. Please request again.";
+                    document.getElementById("countdownText").textContent = "Expired";
+                    document.getElementById("loadingRingWrap").style.display = "none";
+                    clearInterval(pollingTimer);
+                    clearInterval(requestTimer);
+                    document.getElementById("requestAgainBtn").style.display = "inline-block";
+                }
+            } catch (err) {}
+        }
+
+        function startRequestCountdown() {
+            requestCountdown = 60;
+            document.getElementById("countdownText").textContent = "Waiting: 60s";
+
+            requestTimer = setInterval(() => {
+                requestCountdown--;
+                document.getElementById("countdownText").textContent = "Waiting: " + requestCountdown + "s";
+
+                if (requestCountdown <= 0) {
+                    clearInterval(requestTimer);
+                    clearInterval(pollingTimer);
+                    document.getElementById("loadingRingWrap").style.display = "none";
+                    document.getElementById("requestPopupText").textContent = "No admin response within one minute.";
+                    document.getElementById("contactAdminBox").style.display = "block";
+                    document.getElementById("requestAgainBtn").style.display = "inline-block";
+                }
+            }, 1000);
+
+            pollingTimer = setInterval(pollApprovedCode, 3000);
+        }
+
+        document.getElementById("registerForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            try {
+                const fd = new FormData(this);
+                const res = await fetch("/kinatwa/backend/register.php", {
+                    method: "POST",
+                    body: fd
+                });
+
+                const data = await res.json();
+                document.getElementById("registerStatus").textContent = data.message;
+                showToast(data.message, data.ok ? "success" : "danger");
+
+                if (data.ok) {
+                    await autoLogin(document.getElementById("username").value.trim(), document.getElementById("password").value.trim());
+                }
+            } catch (err) {
+                document.getElementById("registerStatus").textContent = "Registration failed: " + err.message;
+                showToast("Registration failed: " + err.message, "danger");
+            }
+        });
+
+        document.getElementById("requestCodeBtn").addEventListener("click", async function() {
+            const username = document.getElementById("username").value.trim();
+            const email = document.getElementById("email").value.trim();
+
+            if (!username || !email) {
+                document.getElementById("registerStatus").textContent = "Enter username and email first.";
+                showToast("Enter username and email first.", "warning");
+                return;
+            }
+
+            try {
+                const fd = new FormData();
+                fd.append("requested_username", username);
+                fd.append("requested_email", email);
+
+                const res = await fetch("/kinatwa/backend/request_code.php", {
+                    method: "POST",
+                    body: fd
+                });
+
+                const data = await res.json();
+                document.getElementById("registerStatus").textContent = data.message;
+                showToast(data.message, data.ok ? "success" : "danger");
+
+                if (data.ok) {
+                    setRequestUi(true);
+                    openRequestPopup();
+                    startRequestCountdown();
+                }
+            } catch (err) {
+                document.getElementById("registerStatus").textContent = "Request failed: " + err.message;
+                showToast("Request failed: " + err.message, "danger");
+            }
+        });
+
+        document.getElementById("checkCodeBtn").addEventListener("click", async function() {
+            await pollApprovedCode();
+        });
+
+        document.getElementById("exitRequestBtn").addEventListener("click", function() {
+            closeRequestPopup();
+        });
+
+        document.getElementById("requestAgainBtn").addEventListener("click", function() {
+            closeRequestPopup();
+            document.getElementById("requestCodeBtn").click();
+        });
+    </script>
+
+    <script src="/kinatwa/static/js/home.js"></script>
+</body>
+
+</html>

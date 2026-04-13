@@ -1,0 +1,2271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinatwa Sacco - Admin</title>
+
+    <link rel="stylesheet" href="/kinatwa/static/css/style.css">
+    <link rel="icon" type="image/x-icon" href="/kinatwa/static/assets/kinatwa-icon.ico">
+    <link rel="icon" type="image/png" href="/kinatwa/static/assets/kinatwa-icon.png">
+
+    <style>
+        .admin-shell {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .top-admin-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            animation: softSlideDown 0.55s ease;
+        }
+        
+        .top-admin-left,
+        .top-admin-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notify-bell-wrap,
+        .mini-toggle-wrap {
+            position: relative;
+        }
+        
+        .notify-bell,
+        .mini-toggle-btn {
+            width: 54px;
+            height: 54px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 22px;
+            background: linear-gradient(135deg, #0b5a24, #138a36, #1cad49);
+            color: white;
+            box-shadow: 0 10px 22px rgba(19, 138, 54, 0.18);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        
+        .notify-bell:hover,
+        .mini-toggle-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 16px 30px rgba(19, 138, 54, 0.24);
+        }
+        
+        .mini-four-box {
+            width: 20px;
+            height: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3px;
+            margin: auto;
+        }
+        
+        .mini-four-box span {
+            background: #fff;
+            border-radius: 3px;
+            display: block;
+        }
+        
+        .notify-count {
+            position: absolute;
+            top: -4px;
+            right: -2px;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: #dc2626;
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            border: 2px solid white;
+            animation: pulseDot 1.4s infinite;
+        }
+        
+        .notify-count.show {
+            display: flex;
+        }
+        
+        .notify-panel,
+        .dashboard-mini-panel,
+        .request-popup-modal {
+            position: fixed;
+            top: 92px;
+            z-index: 9500;
+            background: linear-gradient(135deg, #ffffff, #fbfffc);
+            border: 1px solid #cdeed7;
+            border-radius: 22px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
+            padding: 16px;
+            display: none;
+            animation: popScaleIn 0.28s ease;
+        }
+        
+        .notify-panel {
+            left: 14px;
+            width: min(470px, 96vw);
+            max-height: 76vh;
+            overflow: auto;
+        }
+        
+        .dashboard-mini-panel {
+            right: 14px;
+            width: min(320px, 94vw);
+        }
+        
+        .request-popup-modal {
+            right: 14px;
+            width: min(540px, 96vw);
+            max-height: 80vh;
+            overflow: auto;
+        }
+        
+        .notify-panel.show,
+        .dashboard-mini-panel.show,
+        .request-popup-modal.show {
+            display: block;
+        }
+        
+        .notify-item,
+        .request-item {
+            border: 1px solid #d8f3e1;
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f6fff8, #ffffff);
+            animation: softFadeUp 0.32s ease;
+            cursor: pointer;
+        }
+        
+        .notify-item.unread {
+            border-left: 6px solid #1cad49;
+            box-shadow: 0 8px 18px rgba(19, 138, 54, 0.10);
+        }
+        
+        .notify-item.clicked-red {
+            border-left: 6px solid #dc2626;
+            background: linear-gradient(135deg, #fff5f5, #ffffff);
+        }
+        
+        .notify-item-title {
+            font-weight: 800;
+            color: #0b5a24;
+            margin-bottom: 6px;
+        }
+        
+        .notify-item-time {
+            font-size: 12px;
+            color: #475569;
+            margin-top: 6px;
+        }
+        
+        .toast-wrap {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .toast {
+            min-width: 280px;
+            max-width: 420px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+            margin-bottom: 10px;
+            animation: fadeInOut 3s ease forwards;
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #138a36, #1cad49);
+        }
+        
+        .toast.danger {
+            background: linear-gradient(135deg, #b91c1c, #dc2626);
+        }
+        
+        .toast.warning {
+            background: linear-gradient(135deg, #b45309, #d97706);
+        }
+        
+        .admin-card {
+            overflow: hidden;
+            animation: softFadeUp 0.45s ease;
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
+        }
+        
+        .admin-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 30px rgba(19, 138, 54, 0.12);
+        }
+        
+        .admin-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.25s ease, transform 0.25s ease;
+            border-radius: 18px;
+            padding: 2px;
+        }
+        
+        .admin-card-header:hover {
+            background: linear-gradient(135deg, rgba(247, 255, 249, 0.85), rgba(238, 252, 242, 0.85));
+            transform: translateX(2px);
+        }
+        
+        .admin-card-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .admin-arrow {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #effaf2;
+            border: 1px solid #cdeed7;
+            color: #0b5a24;
+            font-size: 18px;
+            font-weight: 800;
+            transition: transform 0.30s ease, background 0.30s ease, box-shadow 0.30s ease;
+            box-shadow: 0 4px 10px rgba(19, 138, 54, 0.08);
+        }
+        
+        .admin-card-body {
+            display: none;
+            margin-top: 16px;
+            border-top: 1px solid #e3f4e8;
+            padding-top: 16px;
+        }
+        
+        .admin-card.open .admin-card-body {
+            display: block;
+            animation: dropdownReveal 0.34s ease;
+        }
+        
+        .admin-card.open .admin-arrow::before {
+            content: "▾";
+        }
+        
+        .admin-card:not(.open) .admin-arrow::before {
+            content: "▸";
+        }
+        
+        .admin-card.open .admin-arrow {
+            transform: scale(1.08);
+            background: linear-gradient(135deg, #e8fff0, #f8fffa);
+            box-shadow: 0 8px 18px rgba(19, 138, 54, 0.14);
+        }
+        
+        .admin-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+        }
+        
+        .admin-inline-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .status-bar {
+            position: sticky;
+            top: 72px;
+            z-index: 900;
+            margin-bottom: 12px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f6fff8, #ffffff);
+            border: 1px solid #d8f3e1;
+            box-shadow: 0 8px 20px rgba(19, 138, 54, 0.08);
+            display: none;
+            animation: softSlideDown 0.35s ease;
+        }
+        
+        .status-bar.show {
+            display: block;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 90px;
+            height: 38px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            font-weight: 800;
+            padding: 0;
+            overflow: hidden;
+            transition: transform 0.25s ease;
+        }
+        
+        .toggle-switch:hover {
+            transform: scale(1.04);
+        }
+        
+        .toggle-switch.on {
+            background: linear-gradient(135deg, #138a36, #1cad49);
+        }
+        
+        .toggle-switch.off {
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+        }
+        
+        .toggle-switch .switch-knob {
+            position: absolute;
+            top: 4px;
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            background: white;
+            transition: left 0.25s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+        }
+        
+        .toggle-switch.on .switch-knob {
+            left: 56px;
+        }
+        
+        .toggle-switch.off .switch-knob {
+            left: 4px;
+        }
+        
+        .toggle-switch .switch-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            letter-spacing: 0.4px;
+            pointer-events: none;
+        }
+        
+        .image-edit-modal,
+        .email-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 6000;
+            background: rgba(0, 0, 0, 0.70);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        
+        .image-edit-modal.show,
+        .email-modal.show {
+            display: flex;
+        }
+        
+        .image-edit-panel {
+            width: min(96vw, 1600px);
+            height: min(92vh, 980px);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.99), rgba(243, 255, 247, 0.99));
+            border-radius: 28px;
+            border: 2px solid #d7f0df;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.28);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            animation: popScaleIn 0.25s ease;
+        }
+        
+        .email-modal-card {
+            width: min(95vw, 560px);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.99), rgba(243, 255, 247, 0.99));
+            border-radius: 28px;
+            border: 2px solid #d7f0df;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.28);
+            padding: 22px;
+            animation: popScaleIn 0.25s ease;
+        }
+        
+        .image-edit-sidebar {
+            border-right: 1px solid #e3f4e8;
+            padding: 18px;
+            overflow-y: auto;
+            background: #fbfffc;
+        }
+        
+        .image-edit-preview-wrap {
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .image-edit-preview-frame {
+            width: min(92vw, 1200px);
+            height: min(74vh, 720px);
+            background: radial-gradient(circle at top right, rgba(26, 115, 232, 0.08), transparent 26%), radial-gradient(circle at bottom left, rgba(28, 173, 73, 0.08), transparent 24%), linear-gradient(135deg, #ffffff 0%, #f7fff9 45%, #f2fff6 100%);
+            border-radius: 30px;
+            border: 2px solid #d7f0df;
+            box-shadow: 0 18px 38px rgba(19, 138, 54, 0.12);
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .image-edit-preview-stage {
+            width: 100%;
+            height: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(236, 255, 242, 0.98));
+            position: relative;
+        }
+        
+        .image-edit-preview-stage img {
+            max-width: none;
+            max-height: none;
+            user-select: none;
+            cursor: grab;
+            position: absolute;
+            transform-origin: center center;
+        }
+        
+        .image-edit-preview-stage img.dragging {
+            cursor: grabbing;
+        }
+        
+        .range-group {
+            margin-bottom: 16px;
+        }
+        
+        .range-group input[type="range"] {
+            width: 100%;
+        }
+        
+        .file-box {
+            align-items: stretch;
+            animation: softFadeUp 0.3s ease;
+        }
+        
+        .small-note {
+            font-size: 13px;
+            color: #475569;
+            margin-top: 8px;
+        }
+        
+        .hidden-soft {
+            display: none !important;
+        }
+        
+        .display-info-box {
+            border: 1px solid #d8f3e1;
+            border-radius: 16px;
+            padding: 14px;
+            background: linear-gradient(135deg, #f6fff8, #ffffff);
+            margin-top: 16px;
+            animation: softFadeUp 0.35s ease;
+        }
+        
+        .toolbar {
+            border: 1px solid #d8f3e1;
+            border-radius: 14px;
+            padding: 10px;
+            background: #f9fffb;
+            margin-bottom: 10px;
+        }
+        
+        .toolbar-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .toolbar button,
+        .toolbar select,
+        .toolbar input[type="color"] {
+            padding: 8px 10px;
+            border: 1px solid #cdeed7;
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+        }
+        
+        .toolbar button.active-tool {
+            background: #1a73e8;
+            color: white;
+            border-color: #1a73e8;
+        }
+        
+        .editor-box {
+            min-height: 220px;
+            border: 1px solid #cae9d3;
+            border-radius: 14px;
+            background: #fcfffd;
+            padding: 14px;
+            outline: none;
+        }
+        
+        .request-box-title {
+            font-weight: 800;
+            color: #0b5a24;
+            margin-bottom: 8px;
+        }
+        
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            15% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            85% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+        
+        @keyframes softFadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes softSlideDown {
+            0% {
+                opacity: 0;
+                transform: translateY(-12px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes dropdownReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(-8px) scaleY(0.98);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scaleY(1);
+            }
+        }
+        
+        @keyframes popScaleIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.97);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes pulseDot {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.10);
+            }
+        }
+        
+        @media (max-width: 1050px) {
+            .image-edit-panel {
+                grid-template-columns: 1fr;
+            }
+            .image-edit-sidebar {
+                border-right: none;
+                border-bottom: 1px solid #e3f4e8;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="toastWrap" class="toast-wrap"></div>
+
+    <header class="main-header">
+        <h1>KINATWA SACCO</h1>
+    </header>
+
+    <main class="container">
+        <div class="admin-shell">
+            <div class="top-admin-bar">
+                <div class="top-admin-left">
+                    <div class="notify-bell-wrap">
+                        <button type="button" class="notify-bell" onclick="toggleNotificationPanel(event)">🔔</button>
+                        <div id="notifyCount" class="notify-count">0</div>
+                    </div>
+                </div>
+
+                <div class="top-admin-right">
+                    <div class="mini-toggle-wrap">
+                        <button type="button" class="mini-toggle-btn" onclick="toggleDashboardMiniPanel(event)">
+                            <div class="mini-four-box">
+                                <span></span><span></span><span></span><span></span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="notificationPanel" class="notify-panel">
+                <h3 style="margin-top:0;">Notification History</h3>
+                <div id="notificationContainer"></div>
+            </div>
+
+            <div id="dashboardMiniPanel" class="dashboard-mini-panel">
+                <h3 style="margin-top:0;">Account</h3>
+                <div><strong>Username:</strong> <span id="miniAdminUsername">-</span></div>
+                <div><strong>Email:</strong> <span id="miniAdminEmail">-</span></div>
+                <div><strong>Role:</strong> <span id="miniAdminRole">-</span></div>
+                <div class="admin-inline-actions" style="margin-top:14px;">
+                    <button class="btn danger-btn" type="button" onclick="logoutNow()">Logout</button>
+                </div>
+            </div>
+
+            <div id="requestPopupModal" class="request-popup-modal">
+                <h3 style="margin-top:0;">Admin Request Details</h3>
+                <div id="requestPopupContainer"></div>
+            </div>
+
+            <div id="statusBar" class="status-bar"></div>
+
+            <div class="card admin-card open" id="card-dashboard">
+                <div class="admin-card-header" data-card="card-dashboard">
+                    <div class="admin-card-header-left">
+                        <div class="admin-arrow"></div>
+                        <div>
+                            <h2 style="margin:0 0 6px 0;">Display Status</h2>
+                            <p style="margin:0;">Current display item and live state</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-card-body">
+                    <div id="displayLiveNowBox" class="display-info-box"></div>
+                </div>
+            </div>
+
+            <div class="card admin-card" id="card-main-admin-account">
+                <div class="admin-card-header" data-card="card-main-admin-account">
+                    <div class="admin-card-header-left">
+                        <div class="admin-arrow"></div>
+                        <h3 style="margin:0;">Main Admin Account</h3>
+                    </div>
+                </div>
+                <div class="admin-card-body">
+                    <div class="admin-grid-2">
+                        <div>
+                            <form id="changePasswordForm">
+                                <label for="old_password">Current Password</label>
+                                <input type="password" id="old_password" name="old_password" required>
+
+                                <label for="new_password">New Password</label>
+                                <input type="password" id="new_password" name="new_password" required>
+
+                                <div class="admin-inline-actions" style="margin-top:16px;">
+                                    <button type="submit" class="btn">Change Password</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div>
+                            <div class="card" style="margin-bottom:14px;">
+                                <h3 style="margin-top:0;">Delete My Account</h3>
+                                <button type="button" class="btn danger-btn" onclick="openDeleteAccountPanel()">Delete My Account</button>
+
+                                <div id="deleteAccountPanel" class="hidden-soft" style="margin-top:16px;">
+                                    <form id="deleteMyAccountForm">
+                                        <label for="delete_email">Enter Email</label>
+                                        <input type="text" id="delete_email" name="delete_email" required>
+
+                                        <label for="delete_password">Enter Password</label>
+                                        <input type="password" id="delete_password" name="delete_password" required>
+
+                                        <label for="assign_main_admin_id">Assign another active admin as Main Admin first</label>
+                                        <select id="assign_main_admin_id" name="assign_main_admin_id"></select>
+
+                                        <label for="delete_unique_code">Unique Code</label>
+                                        <input type="text" id="delete_unique_code" name="delete_unique_code" value="JMSAK" required>
+
+                                        <div class="admin-inline-actions" style="margin-top:16px;">
+                                            <button type="submit" class="btn danger-btn">Confirm Delete</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="card" style="margin-bottom:0;">
+                                <h3 style="margin-top:0;">Restore Deleted Account</h3>
+
+                                <label for="deleted_account_select">Select deleted account</label>
+                                <input type="text" id="deleted_account_search" placeholder="Search username or email">
+                                <select id="deleted_account_select"></select>
+
+                                <form id="restoreAccountForm" style="margin-top:14px;">
+                                    <input type="hidden" id="restore_username" name="restore_username">
+                                    <input type="hidden" id="restore_email" name="restore_email">
+
+                                    <label for="restore_unique_code">Unique Code</label>
+                                    <input type="text" id="restore_unique_code" name="restore_unique_code" required>
+
+                                    <div class="admin-inline-actions" style="margin-top:16px;">
+                                        <button type="submit" class="btn secondary">Restore Account</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card admin-card" id="card-upload">
+                <div class="admin-card-header" data-card="card-upload">
+                    <div class="admin-card-header-left">
+                        <div class="admin-arrow"></div>
+                        <h3 style="margin:0;">Upload Document / Image / Video</h3>
+                    </div>
+                </div>
+                <div class="admin-card-body">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="admin-grid-2">
+                            <div>
+                                <label for="document">Choose file</label>
+                                <input type="file" name="document" id="document" required>
+                            </div>
+
+                            <div>
+                                <label for="upload_type">File handling</label>
+                                <select name="upload_type" id="upload_type">
+                                    <option value="auto_resize">Automatically resize to fit display</option>
+                                    <option value="manual_edit">Keep original and edit later</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="fit_mode">Image fitting mode</label>
+                                <select name="fit_mode" id="fit_mode">
+                                    <option value="fit_both">Fit both width and height</option>
+                                    <option value="fit_width">Fit width first</option>
+                                    <option value="fit_height">Fit height first</option>
+                                    <option value="stretch_safe">Stretch safely</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="display_mode">How should it play?</label>
+                                <select name="display_mode" id="display_mode">
+                                    <option value="normal">Normal queue</option>
+                                    <option value="priority_now">Stop current and play now</option>
+                                    <option value="priority_time">Play at particular time</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="play_type">Play type</label>
+                                <select name="play_type" id="play_type">
+                                    <option value="loop">Loop</option>
+                                    <option value="show_once">Show once</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="play_minutes">Minutes</label>
+                                <input type="number" name="play_minutes" id="play_minutes" min="1" value="5">
+                            </div>
+
+                            <div>
+                                <label for="start_time">Start time</label>
+                                <input type="time" name="start_time" id="start_time">
+                            </div>
+                        </div>
+
+                        <div class="admin-inline-actions" style="margin-top:16px;">
+                            <button type="submit" class="btn">Upload</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card admin-card" id="card-security">
+                <div class="admin-card-header" data-card="card-security">
+                    <div class="admin-card-header-left">
+                        <div class="admin-arrow"></div>
+                        <h3 style="margin:0;">Admin Security Code</h3>
+                    </div>
+                </div>
+                <div class="admin-card-body">
+                    <form id="generateCodeForm">
+                        <div class="admin-grid-2">
+                            <div>
+                                <label for="intended_username">New admin username</label>
+                                <input type="text" id="intended_username" name="intended_username" placeholder="Enter username for new admin">
+                            </div>
+
+                            <div>
+                                <label for="intended_email">New admin email</label>
+                                <input type="text" id="intended_email" name="intended_email" placeholder="Enter email for new admin" required>
+                            </div>
+                        </div>
+
+                        <div class="admin-inline-actions" style="margin-top:16px;">
+                            <button type="submit" class="btn">Generate Security Code</button>
+                        </div>
+                    </form>
+
+                    <div id="generatedCodeBox" style="margin-top:16px;font-weight:700;"></div>
+                    <div id="activeCodesBox" style="margin-top:20px;"></div>
+                    <div id="pendingRequestsBox" style="margin-top:20px;"></div>
+                </div>
+            </div>
+
+            <div class="card admin-card" id="card-display-control">
+                <div class="admin-card-header" data-card="card-display-control">
+                    <div class="admin-card-header-left">
+                        <div class="admin-arrow"></div>
+                        <h3 style="margin:0;">Display Control</h3>
+                    </div>
+                </div>
+                <div class="admin-card-body">
+                    <form id="priorityForm">
+                        <div class="admin-grid-2">
+                            <div>
+                                <label for="selected_priority_file">Select file to play first</label>
+                                <select name="selected_priority_file" id="selected_priority_file"></select>
+                            </div>
+
+                            <div>
+                                <label for="priority_action">Action</label>
+                                <select name="priority_action" id="priority_action">
+                                    <option value="play_now">Stop current and play now</option>
+                                    <option value="schedule">Play at selected time</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="priority_play_type">Play type</label>
+                                <select name="priority_play_type" id="priority_play_type">
+                                    <option value="loop">Loop</option>
+                                    <option value="show_once">Show once</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="priority_minutes">Minutes</label>
+                                <input type="number" name="priority_minutes" id="priority_minutes" min="1" value="5">
+                            </div>
+
+                            <div>
+                                <label for="priority_time">Play at time</label>
+                                <input type="time" name="priority_time" id="priority_time">
+                            </div>
+                        </div>
+
+                        <div class="admin-inline-actions" style="margin-top:16px;">
+                            <button type="submit" class="btn">Set to Play First</button>
+                        </div>
+                    </form>
+
+                    <hr style="margin:22px 0;">
+
+                    <form id="messageForm">
+                        <div class="toolbar">
+                            <div class="toolbar-row">
+                                <select id="fontName">
+                                    <option value="Calibri">Calibri</option>
+                                    <option value="Arial">Arial</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="Verdana">Verdana</option>
+                                </select>
+
+                                <select id="fontSize">
+                                    <option value="1">8</option>
+                                    <option value="2">10</option>
+                                    <option value="3" selected>12</option>
+                                    <option value="4">14</option>
+                                    <option value="5">18</option>
+                                    <option value="6">24</option>
+                                    <option value="7">36</option>
+                                </select>
+
+                                <button type="button" data-cmd="bold" onclick="cmd('bold', null, this)">Bold</button>
+                                <button type="button" data-cmd="italic" onclick="cmd('italic', null, this)">Italic</button>
+                                <button type="button" data-cmd="underline" onclick="cmd('underline', null, this)">Underline</button>
+                                <button type="button" data-cmd="strikeThrough" onclick="cmd('strikeThrough', null, this)">Strikethrough</button>
+                                <button type="button" data-cmd="subscript" onclick="cmd('subscript', null, this)">Subscript</button>
+                                <button type="button" data-cmd="superscript" onclick="cmd('superscript', null, this)">Superscript</button>
+                                <button type="button" onclick="increaseFontSize()">A+</button>
+                                <button type="button" onclick="decreaseFontSize()">A-</button>
+                            </div>
+
+                            <div class="toolbar-row">
+                                <button type="button" data-cmd="insertUnorderedList" onclick="cmd('insertUnorderedList', null, this)">Bullets</button>
+                                <button type="button" data-cmd="insertOrderedList" onclick="cmd('insertOrderedList', null, this)">Numbering</button>
+                                <button type="button" data-cmd="outdent" onclick="cmd('outdent', null, this)">Decrease Indent</button>
+                                <button type="button" data-cmd="indent" onclick="cmd('indent', null, this)">Increase Indent</button>
+                                <button type="button" data-cmd="justifyLeft" onclick="cmd('justifyLeft', null, this)">Align Left</button>
+                                <button type="button" data-cmd="justifyCenter" onclick="cmd('justifyCenter', null, this)">Center</button>
+                                <button type="button" data-cmd="justifyRight" onclick="cmd('justifyRight', null, this)">Align Right</button>
+                                <button type="button" data-cmd="justifyFull" onclick="cmd('justifyFull', null, this)">Justify</button>
+                                <button type="button" onclick="setLineSpacing('1')">1.0</button>
+                                <button type="button" onclick="setLineSpacing('1.5')">1.5</button>
+                                <button type="button" onclick="setLineSpacing('2')">2.0</button>
+                            </div>
+
+                            <div class="toolbar-row">
+                                <button type="button" onclick="cmd('removeFormat', null, this)">Clear All Formatting</button>
+                                <button type="button" onclick="cmd('formatBlock', '<p>', this)">Normal</button>
+                                <button type="button" onclick="cmd('formatBlock', '<h1>', this)">Heading 1</button>
+                                <button type="button" onclick="changeCase('upper')">UPPER</button>
+                                <button type="button" onclick="changeCase('lower')">lower</button>
+                                <button type="button" onclick="changeCase('title')">Title Case</button>
+                                <button type="button" onclick="applyBackColor()">Shading</button>
+                                <input type="color" id="backColor" value="#f3fff6">
+                                <button type="button" onclick="applyHighlight()">Highlight</button>
+                                <input type="color" id="highlightColor" value="#ffff00">
+                                <button type="button" onclick="applyFontColor()">Font Color</button>
+                                <input type="color" id="fontColor" value="#000000">
+                                <button type="button" onclick="applyBorder()">Borders</button>
+                                <button type="button" onclick="sortEditorLines()">Sort</button>
+                                <button type="button" onclick="toggleParagraphMarks()">¶</button>
+                            </div>
+                        </div>
+
+                        <label for="editorArea">Formatted message to display first</label>
+                        <div id="editorArea" class="editor-box" contenteditable="true"></div>
+                        <input type="hidden" name="admin_message_html" id="admin_message_html">
+                        <input type="hidden" name="admin_message_text" id="admin_message_text">
+
+                        <label for="admin_message_minutes">Show message for how many minutes</label>
+                        <input type="number" name="admin_message_minutes" id="admin_message_minutes" min="1" value="1">
+
+                        <div class="admin-inline-actions" style="margin-top:16px;">
+                            <button type="submit" class="btn">Post Message to Display</button>
+                        </div>
+                    </form>
+
+                    <div id="displayStateInfoBox" class="display-info-box"></div>
+                </div>
+            </div>
+
+            <div class="card admin-card" id="card-admins">
+                <div class="admin-card-header" data-card="card-admins">
+                    <div class="admin-card-header-left">
+                        <div class="admin-arrow"></div>
+                        <h3 style="margin:0;">Registered Admins</h3>
+                    </div>
+                </div>
+                <div class="admin-card-body">
+                    <div id="adminsContainer"></div>
+                </div>
+            </div>
+
+            <div class="card admin-card" id="card-files">
+                <div class="admin-card-header" data-card="card-files">
+                    <div class="admin-card-header-left">
+                        <div class="admin-arrow"></div>
+                        <h3 style="margin:0;">Uploaded Files</h3>
+                    </div>
+                </div>
+                <div class="admin-card-body">
+                    <div id="filesContainer" class="file-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="imageEditorModal" class="image-edit-modal">
+            <div class="image-edit-panel">
+                <div class="image-edit-sidebar">
+                    <h3 style="margin-top:0;">Image Editor</h3>
+                    <div id="editFileName" style="font-weight:700; margin-bottom:14px;"></div>
+
+                    <div class="range-group">
+                        <label for="editWidthScale">Width scale</label>
+                        <input type="range" id="editWidthScale" min="0.2" max="4" step="0.05" value="1">
+                        <div><span id="editWidthValue">1.00</span>x</div>
+                    </div>
+
+                    <div class="range-group">
+                        <label for="editHeightScale">Height scale</label>
+                        <input type="range" id="editHeightScale" min="0.2" max="4" step="0.05" value="1">
+                        <div><span id="editHeightValue">1.00</span>x</div>
+                    </div>
+
+                    <div class="range-group">
+                        <label for="editMoveX">Move left / right</label>
+                        <input type="range" id="editMoveX" min="-600" max="600" step="1" value="0">
+                        <div><span id="editMoveXValue">0</span> px</div>
+                    </div>
+
+                    <div class="range-group">
+                        <label for="editMoveY">Move up / down</label>
+                        <input type="range" id="editMoveY" min="-400" max="400" step="1" value="0">
+                        <div><span id="editMoveYValue">0</span> px</div>
+                    </div>
+
+                    <div class="small-note">
+                        Drag the image inside the preview frame. Adjust width and height until it looks good on the display.
+                    </div>
+
+                    <div class="admin-inline-actions" style="margin-top:18px;">
+                        <button type="button" class="btn" onclick="saveEditedImage()">Save Edited Image</button>
+                        <button type="button" class="btn secondary" onclick="resetEditorImage()">Reset Size</button>
+                        <button type="button" class="btn secondary" onclick="closeImageEditor()">Close</button>
+                    </div>
+                </div>
+
+                <div class="image-edit-preview-wrap">
+                    <div class="image-edit-preview-frame">
+                        <div class="image-edit-preview-stage" id="imageEditStage">
+                            <img id="imageEditPreview" alt="Image Preview">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="emailModal" class="email-modal">
+            <div class="email-modal-card">
+                <h3 style="margin-top:0;">Add Your Email</h3>
+                <p style="margin-top:0;">Your account has no email yet. Please add it now.</p>
+
+                <form id="saveEmailForm">
+                    <label for="admin_email_input">Email</label>
+                    <input type="text" id="admin_email_input" name="admin_email_input" placeholder="Enter email" required>
+
+                    <div class="admin-inline-actions" style="margin-top:16px;">
+                        <button type="submit" class="btn">Save Email</button>
+                        <button type="button" class="btn secondary" onclick="closeEmailModal()">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentEditFile = "";
+        let dragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let currentMoveX = 0;
+        let currentMoveY = 0;
+        let currentAdminRole = 2;
+        let currentAdminId = null;
+        let emailPromptShown = false;
+
+        let lastFilesHash = "";
+        let lastAdminsHash = "";
+        let lastRequestsHash = "";
+        let lastNotificationsHash = "";
+        let showParagraphMarks = false;
+        let latestAdminData = null;
+
+        function byId(id) {
+            return document.getElementById(id);
+        }
+
+        function escapeHtml(value) {
+            return String(value == null ? "" : value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function showToast(message, type) {
+            const wrap = byId("toastWrap");
+            if (!wrap) return;
+
+            const div = document.createElement("div");
+            div.className = "toast " + (type || "success");
+            div.textContent = message || "";
+            wrap.appendChild(div);
+
+            setTimeout(function() {
+                div.remove();
+            }, 3200);
+        }
+
+        function showStatus(message, ok) {
+            const bar = byId("statusBar");
+            if (!bar) return;
+
+            bar.textContent = message || "";
+            bar.classList.add("show");
+            bar.style.borderColor = ok === false ? "#ffd5d5" : "#cdeed7";
+            bar.style.background = ok === false ?
+                "linear-gradient(135deg, #fff6f6, #ffffff)" :
+                "linear-gradient(135deg, #f6fff8, #ffffff)";
+        }
+
+        function closeAllCardsExcept(cardIdToKeep) {
+            document.querySelectorAll(".admin-card").forEach(function(card) {
+                if (card.id !== cardIdToKeep) {
+                    card.classList.remove("open");
+                }
+            });
+        }
+
+        function toggleCard(cardId) {
+            const card = byId(cardId);
+            if (!card) return;
+
+            const willOpen = !card.classList.contains("open");
+            closeAllCardsExcept(cardId);
+
+            if (willOpen) {
+                card.classList.add("open");
+            }
+        }
+
+        function toggleNotificationPanel(event) {
+            if (event) event.stopPropagation();
+            const panel = byId("notificationPanel");
+            if (!panel) return;
+
+            byId("dashboardMiniPanel").classList.remove("show");
+            byId("requestPopupModal").classList.remove("show");
+
+            panel.classList.toggle("show");
+            if (panel.classList.contains("show")) {
+                markNotificationsRead();
+            }
+        }
+
+        function toggleDashboardMiniPanel(event) {
+            if (event) event.stopPropagation();
+            const panel = byId("dashboardMiniPanel");
+            if (!panel) return;
+
+            byId("notificationPanel").classList.remove("show");
+            byId("requestPopupModal").classList.remove("show");
+
+            panel.classList.toggle("show");
+        }
+
+        function toggleRequestPopup(show) {
+            const panel = byId("requestPopupModal");
+            if (!panel) return;
+            if (show) panel.classList.add("show");
+            else panel.classList.remove("show");
+        }
+
+        document.addEventListener("click", function(e) {
+            const notificationPanel = byId("notificationPanel");
+            const dashboardMiniPanel = byId("dashboardMiniPanel");
+            const requestPopupModal = byId("requestPopupModal");
+            const notifyBellWrap = document.querySelector(".notify-bell-wrap");
+            const miniToggleWrap = document.querySelector(".mini-toggle-wrap");
+
+            if (
+                notificationPanel &&
+                !notificationPanel.contains(e.target) &&
+                notifyBellWrap &&
+                !notifyBellWrap.contains(e.target)
+            ) {
+                notificationPanel.classList.remove("show");
+            }
+
+            if (
+                dashboardMiniPanel &&
+                !dashboardMiniPanel.contains(e.target) &&
+                miniToggleWrap &&
+                !miniToggleWrap.contains(e.target)
+            ) {
+                dashboardMiniPanel.classList.remove("show");
+            }
+
+            if (
+                requestPopupModal &&
+                requestPopupModal.classList.contains("show") &&
+                !requestPopupModal.contains(e.target) &&
+                !e.target.closest(".notify-item")
+            ) {
+                requestPopupModal.classList.remove("show");
+            }
+        });
+
+        document.querySelectorAll(".admin-card-header").forEach(function(header) {
+            header.addEventListener("click", function(e) {
+                if (e.target.closest("button, a, input, select, textarea, label, form")) return;
+                const cardId = this.getAttribute("data-card");
+                if (cardId) toggleCard(cardId);
+            });
+        });
+
+        async function jsonPost(url, formData) {
+            const res = await fetch(url, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            const text = await res.text();
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                throw new Error(text || "Invalid server response.");
+            }
+        }
+
+        function openEmailModal(emailValue) {
+            const modal = byId("emailModal");
+            const input = byId("admin_email_input");
+            if (input) input.value = emailValue || "";
+            if (modal) modal.classList.add("show");
+        }
+
+        function closeEmailModal() {
+            const modal = byId("emailModal");
+            if (modal) modal.classList.remove("show");
+        }
+
+        function setActiveTool(buttonEl) {
+            if (!buttonEl) return;
+            buttonEl.classList.toggle("active-tool");
+        }
+
+        function cmd(command, value, buttonEl) {
+            document.execCommand(command, false, value || null);
+            const editor = byId("editorArea");
+            if (editor) editor.focus();
+            setActiveTool(buttonEl);
+        }
+
+        function increaseFontSize() {
+            document.execCommand("fontSize", false, "6");
+        }
+
+        function decreaseFontSize() {
+            document.execCommand("fontSize", false, "2");
+        }
+
+        function applyFontColor() {
+            document.execCommand("foreColor", false, byId("fontColor").value);
+        }
+
+        function applyHighlight() {
+            document.execCommand("hiliteColor", false, byId("highlightColor").value);
+        }
+
+        function applyBackColor() {
+            document.execCommand("backColor", false, byId("backColor").value);
+        }
+
+        function setLineSpacing(value) {
+            const editor = byId("editorArea");
+            if (!editor) return;
+            editor.style.lineHeight = value;
+        }
+
+        function applyBorder() {
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+            const span = document.createElement("span");
+            span.style.border = "1px solid #0b5a24";
+            span.style.padding = "2px 4px";
+            try {
+                range.surroundContents(span);
+            } catch (e) {}
+        }
+
+        function changeCase(mode) {
+            const editor = byId("editorArea");
+            if (!editor) return;
+
+            if (mode === "upper") {
+                editor.innerHTML = editor.innerHTML.toUpperCase();
+            } else if (mode === "lower") {
+                editor.innerHTML = editor.innerHTML.toLowerCase();
+            } else if (mode === "title") {
+                const text = editor.innerText.toLowerCase().replace(/\b\w/g, function(m) {
+                    return m.toUpperCase();
+                });
+                editor.innerText = text;
+            }
+        }
+
+        function sortEditorLines() {
+            const editor = byId("editorArea");
+            if (!editor) return;
+            const lines = editor.innerText.split("\n").map(function(x) {
+                return x.trim();
+            }).filter(Boolean).sort();
+            editor.innerHTML = lines.join("<br>");
+        }
+
+        function toggleParagraphMarks() {
+            const editor = byId("editorArea");
+            if (!editor) return;
+            showParagraphMarks = !showParagraphMarks;
+            editor.style.whiteSpace = showParagraphMarks ? "pre-wrap" : "normal";
+        }
+
+        byId("fontName").addEventListener("change", function() {
+            document.execCommand("fontName", false, this.value);
+        });
+
+        byId("fontSize").addEventListener("change", function() {
+            document.execCommand("fontSize", false, this.value);
+        });
+
+        function setNotificationClicked(id) {
+            const current = JSON.parse(localStorage.getItem("kinatwa_clicked_notifications") || "[]");
+            if (!current.includes(id)) {
+                current.push(id);
+                localStorage.setItem("kinatwa_clicked_notifications", JSON.stringify(current));
+            }
+        }
+
+        function isNotificationClicked(id) {
+            const current = JSON.parse(localStorage.getItem("kinatwa_clicked_notifications") || "[]");
+            return current.includes(id);
+        }
+
+        function parseRequestDetailsFromMessage(message) {
+            const msg = String(message || "");
+            const userMatch = msg.match(/username:\s*([^,.\n]+)/i);
+            const emailMatch = msg.match(/email:\s*([^,.\n]+)/i);
+
+            return {
+                username: userMatch ? userMatch[1].trim() : "",
+                email: emailMatch ? emailMatch[1].trim() : ""
+            };
+        }
+
+        function renderNotifications(notifications, unreadCount) {
+            const container = byId("notificationContainer");
+            const countEl = byId("notifyCount");
+            if (!container || !countEl) return;
+
+            container.innerHTML = "";
+
+            if (!notifications || !notifications.length) {
+                container.innerHTML = "<p>No notifications yet.</p>";
+            } else {
+                notifications.forEach(function(item) {
+                    const div = document.createElement("div");
+                    const clickedClass = isNotificationClicked(Number(item.id)) ? " clicked-red" : "";
+                    div.className = "notify-item" + (Number(item.is_read) === 0 ? " unread" : "") + clickedClass;
+
+                    div.innerHTML =
+                        '<div class="notify-item-title">' + escapeHtml(item.title || "") + "</div>" +
+                        "<div>" + escapeHtml(item.message || "") + "</div>" +
+                        '<div class="notify-item-time">' + escapeHtml(item.created_at || "") + "</div>" +
+                        '<div class="admin-inline-actions" style="margin-top:10px;">' +
+                        '<button type="button" class="btn small danger-btn" onclick="deleteNotification(' + Number(item.id) + '); event.stopPropagation();">Delete</button>' +
+                        "</div>";
+
+                    div.addEventListener("click", function() {
+                        setNotificationClicked(Number(item.id));
+                        div.classList.add("clicked-red");
+
+                        if (/request/i.test(String(item.title || "")) || /request/i.test(String(item.message || ""))) {
+                            const details = parseRequestDetailsFromMessage(item.message || "");
+                            showNotificationRequestPopup(item, details);
+                        }
+                    });
+
+                    container.appendChild(div);
+                });
+            }
+
+            if (Number(unreadCount || 0) > 0) {
+                countEl.textContent = String(unreadCount);
+                countEl.classList.add("show");
+            } else {
+                countEl.textContent = "0";
+                countEl.classList.remove("show");
+            }
+        }
+
+        function showNotificationRequestPopup(notification, details) {
+            const container = byId("requestPopupContainer");
+            if (!container) return;
+
+            let matchedPending = null;
+            if (latestAdminData && Array.isArray(latestAdminData.pending_requests)) {
+                matchedPending = latestAdminData.pending_requests.find(function(r) {
+                    return (details.username && String(r.requested_username || "").toLowerCase() === details.username.toLowerCase()) &&
+                        (details.email && String(r.requested_email || "").toLowerCase() === details.email.toLowerCase());
+                }) || null;
+            }
+
+            let html = "";
+            html += '<div class="request-item">';
+            html += '<div class="request-box-title">' + escapeHtml(notification.title || "Request") + "</div>";
+            html += "<div><strong>Username:</strong> " + escapeHtml(details.username || "-") + "</div>";
+            html += "<div><strong>Email:</strong> " + escapeHtml(details.email || "-") + "</div>";
+            html += "<div><strong>Notification Time:</strong> " + escapeHtml(notification.created_at || "-") + "</div>";
+
+            if (matchedPending && currentAdminRole === 1) {
+                html += "<div style=\"margin-top:8px;color:#138a36;font-weight:700;\">This request is still active.</div>";
+                html += '<div class="admin-inline-actions" style="margin-top:12px;">';
+                html += '<button type="button" class="btn" onclick="approveRequest(' + Number(matchedPending.id) + ', \'approve\')">Approve</button>';
+                html += '<button type="button" class="btn danger-btn" onclick="approveRequest(' + Number(matchedPending.id) + ', \'decline\')">Decline</button>';
+                html += '<button type="button" class="btn secondary" onclick="toggleRequestPopup(false)">Close</button>';
+                html += "</div>";
+            } else {
+                html += "<div style=\"margin-top:8px;color:#dc2626;font-weight:700;\">This request has expired or was already handled.</div>";
+                html += '<div class="admin-inline-actions" style="margin-top:12px;">';
+                html += '<button type="button" class="btn secondary" onclick="toggleRequestPopup(false)">Close</button>';
+                html += "</div>";
+            }
+
+            html += "</div>";
+            container.innerHTML = html;
+            toggleRequestPopup(true);
+        }
+
+        async function markNotificationsRead() {
+            try {
+                await jsonPost("/kinatwa/backend/mark_notifications_read.php", new FormData());
+            } catch (err) {}
+        }
+
+        async function deleteNotification(id) {
+            try {
+                const fd = new FormData();
+                fd.append("notification_id", id);
+                const data = await jsonPost("/kinatwa/backend/delete_notification.php", fd);
+                showStatus(data.message, data.ok);
+                showToast(data.message, data.ok ? "success" : "danger");
+                if (data.ok) await loadAdminData(true);
+            } catch (err) {
+                showToast("Delete notification failed: " + err.message, "danger");
+            }
+        }
+
+        function renderMainMiniPanel(data) {
+            byId("miniAdminUsername").textContent = data.admin_username || "-";
+            byId("miniAdminEmail").textContent = data.admin_email || "-";
+            byId("miniAdminRole").textContent = Number(data.admin_role) === 1 ? "Main Admin" : "Normal Admin";
+        }
+
+        function renderRequestPopup(requests) {
+            const container = byId("requestPopupContainer");
+            if (!container) return;
+
+            container.innerHTML = "";
+
+            if (currentAdminRole !== 1 || !requests || !requests.length) {
+                toggleRequestPopup(false);
+                return;
+            }
+
+            requests.forEach(function(req) {
+                const box = document.createElement("div");
+                box.className = "request-item";
+                box.innerHTML =
+                    '<div class="request-box-title">Pending Request</div>' +
+                    "<div><strong>Username:</strong> " + escapeHtml(req.requested_username || "") + "</div>" +
+                    "<div><strong>Email:</strong> " + escapeHtml(req.requested_email || "") + "</div>" +
+                    "<div><strong>Requested At:</strong> " + escapeHtml(req.requested_at || "") + "</div>" +
+                    '<div class="admin-inline-actions" style="margin-top:12px;">' +
+                    '<button type="button" class="btn" onclick="approveRequest(' + Number(req.id) + ', \'approve\')">Approve</button>' +
+                    '<button type="button" class="btn danger-btn" onclick="approveRequest(' + Number(req.id) + ', \'decline\')">Decline</button>' +
+                    '<button type="button" class="btn secondary" onclick="toggleRequestPopup(false)">Ignore</button>' +
+                    "</div>";
+
+                container.appendChild(box);
+            });
+
+            toggleRequestPopup(true);
+        }
+
+        function renderDeleteAssigneeOptions(admins) {
+            const select = byId("assign_main_admin_id");
+            if (!select) return;
+
+            select.innerHTML = '<option value="">Choose another admin</option>';
+
+            (admins || []).forEach(function(admin) {
+                if (Number(admin.id) === Number(currentAdminId)) return;
+
+                const opt = document.createElement("option");
+                opt.value = String(admin.id);
+                opt.textContent = admin.username + " - " + (admin.email || "-");
+                select.appendChild(opt);
+            });
+        }
+
+        function renderDeletedAccountsDropdown(accounts) {
+            const select = byId("deleted_account_select");
+            const search = byId("deleted_account_search");
+            if (!select || !search) return;
+
+            const render = function(filterText) {
+                const f = String(filterText || "").toLowerCase();
+                select.innerHTML = '<option value="">Select deleted account</option>';
+
+                (accounts || []).forEach(function(acc) {
+                    const text = (acc.username || "") + " " + (acc.email || "");
+                    if (f && text.toLowerCase().indexOf(f) === -1) return;
+
+                    const opt = document.createElement("option");
+                    opt.value = JSON.stringify({
+                        username: acc.username || "",
+                        email: acc.email || ""
+                    });
+                    opt.textContent = (acc.username || "") + " - " + (acc.email || "-");
+                    select.appendChild(opt);
+                });
+            };
+
+            render("");
+
+            search.oninput = function() {
+                render(this.value);
+            };
+
+            select.onchange = function() {
+                if (!this.value) {
+                    byId("restore_username").value = "";
+                    byId("restore_email").value = "";
+                    return;
+                }
+
+                try {
+                    const data = JSON.parse(this.value);
+                    byId("restore_username").value = data.username || "";
+                    byId("restore_email").value = data.email || "";
+                } catch (e) {}
+            };
+        }
+
+        function renderDisplayStateInfo(info) {
+            const existing = byId("displayStateInfoBox");
+            const liveBox = byId("displayLiveNowBox");
+            if (!existing || !liveBox) return;
+
+            let currentPlaying = "Normal Live Queue";
+            if (info.forced_file_name) {
+                currentPlaying = info.forced_file_name + " (Priority Now)";
+            } else if (info.scheduled_file_name) {
+                currentPlaying = info.scheduled_file_name + " (Scheduled)";
+            } else if (info.admin_message) {
+                currentPlaying = "Admin Message";
+            }
+
+            liveBox.innerHTML =
+                "<div><strong>Current Display:</strong> " + escapeHtml(currentPlaying) + "</div>" +
+                "<div><strong>Active Until:</strong> " + escapeHtml(info.active_until || "-") + "</div>" +
+                "<div><strong>Scheduled Time:</strong> " + escapeHtml(info.scheduled_time || "-") + "</div>";
+
+            existing.innerHTML =
+                "<div><strong>Current Priority File:</strong> " + escapeHtml(info.forced_file_name || "None") + "</div>" +
+                "<div><strong>Current Priority Ends:</strong> " + escapeHtml(info.active_until || "-") + "</div>" +
+                "<div><strong>Scheduled File:</strong> " + escapeHtml(info.scheduled_file_name || "None") + "</div>" +
+                "<div><strong>Scheduled Time:</strong> " + escapeHtml(info.scheduled_time || "-") + "</div>" +
+                "<div><strong>Scheduled Minutes:</strong> " + escapeHtml(String(info.scheduled_minutes || "-")) + "</div>" +
+                "<div><strong>Admin Message:</strong> " + (info.admin_message ? "Posted" : "-") + "</div>" +
+                "<div><strong>Message Ends:</strong> " + escapeHtml(info.admin_message_until || "-") + "</div>" +
+                '<div class="admin-inline-actions" style="margin-top:12px;">' +
+                '<button type="button" class="btn danger-btn" onclick="cancelDisplayOverride(\'forced\')">Cancel Current Priority</button>' +
+                '<button type="button" class="btn danger-btn" onclick="cancelDisplayOverride(\'scheduled\')">Cancel Scheduled Play</button>' +
+                "</div>";
+        }
+
+        async function cancelDisplayOverride(type) {
+            try {
+                const fd = new FormData();
+                fd.append("cancel_type", type);
+                const data = await jsonPost("/kinatwa/backend/cancel_display_override.php", fd);
+                showStatus(data.message, data.ok);
+                showToast(data.message, data.ok ? "success" : "danger");
+                if (data.ok) await loadAdminData(true);
+            } catch (err) {
+                showToast("Cancel failed: " + err.message, "danger");
+            }
+        }
+
+        function renderActiveCodes(activeCodes) {
+            const box = byId("activeCodesBox");
+            if (!box) return;
+
+            box.innerHTML = "";
+            if (currentAdminRole !== 1) return;
+
+            if (!activeCodes || !activeCodes.length) {
+                box.innerHTML = "<p>No active security code.</p>";
+                return;
+            }
+
+            activeCodes.forEach(function(code) {
+                const div = document.createElement("div");
+                div.className = "file-box";
+                div.style.display = "block";
+                div.style.marginBottom = "12px";
+                div.innerHTML =
+                    "<div><strong>Code:</strong> " + escapeHtml(code.code || "") + "</div>" +
+                    "<div><strong>For Username:</strong> " + escapeHtml(code.intended_username || "Any allowed user") + "</div>" +
+                    "<div><strong>For Email:</strong> " + escapeHtml(code.intended_email || "-") + "</div>" +
+                    "<div><strong>Expires At:</strong> " + escapeHtml(code.expires_at || "") + "</div>";
+                box.appendChild(div);
+            });
+        }
+
+        function renderPendingRequests(requests) {
+            const box = byId("pendingRequestsBox");
+            if (!box) return;
+
+            box.innerHTML = "";
+            if (currentAdminRole !== 1) return;
+
+            if (!requests || !requests.length) {
+                box.innerHTML = "<p>No pending requests.</p>";
+                return;
+            }
+
+            requests.forEach(function(req) {
+                const wrap = document.createElement("div");
+                wrap.className = "file-box";
+                wrap.style.display = "block";
+                wrap.style.marginBottom = "12px";
+                wrap.innerHTML =
+                    "<div><strong>Requested Username:</strong> " + escapeHtml(req.requested_username || "") + "</div>" +
+                    "<div><strong>Requested Email:</strong> " + escapeHtml(req.requested_email || "") + "</div>" +
+                    "<div><strong>Requested At:</strong> " + escapeHtml(req.requested_at || "") + "</div>" +
+                    '<div class="admin-inline-actions" style="margin-top:12px;">' +
+                    '<button type="button" class="btn" onclick="approveRequest(' + Number(req.id) + ', \'approve\')">Approve</button>' +
+                    '<button type="button" class="btn danger-btn" onclick="approveRequest(' + Number(req.id) + ', \'decline\')">Decline</button>' +
+                    '<button type="button" class="btn secondary" onclick="toggleRequestPopup(false)">Ignore</button>' +
+                    "</div>";
+                box.appendChild(wrap);
+            });
+        }
+
+        function renderAdmins(admins) {
+            const adminsContainer = byId("adminsContainer");
+            if (!adminsContainer) return;
+
+            adminsContainer.innerHTML = "";
+
+            if (!admins || !admins.length) {
+                adminsContainer.innerHTML = "<p>No admins found.</p>";
+                return;
+            }
+
+            admins.forEach(function(admin) {
+                const box = document.createElement("div");
+                box.className = "file-box";
+                box.style.display = "block";
+                box.style.marginBottom = "12px";
+
+                let actions = "";
+                if (currentAdminRole === 1 && Number(admin.id) !== Number(currentAdminId)) {
+                    actions =
+                        '<div class="admin-inline-actions" style="margin-top:12px;">' +
+                        '<button type="button" class="btn small danger-btn" onclick="deleteAdmin(' + Number(admin.id) + ')">Delete Admin</button>' +
+                        "</div>";
+                }
+
+                box.innerHTML =
+                    "<div><strong>Username:</strong> " + escapeHtml(admin.username || "") + "</div>" +
+                    "<div><strong>Email:</strong> " + escapeHtml(admin.email || "-") + "</div>" +
+                    "<div><strong>Role:</strong> " + (Number(admin.role) === 1 ? "Main Admin" : "Normal Admin") + "</div>" +
+                    "<div><strong>Created At:</strong> " + escapeHtml(admin.created_at || "") + "</div>" +
+                    actions;
+
+                adminsContainer.appendChild(box);
+            });
+        }
+
+        function renderPriorityOptions(files) {
+            const select = byId("selected_priority_file");
+            if (!select) return;
+
+            select.innerHTML = "";
+
+            if (!files || !files.length) {
+                select.innerHTML = '<option value="">No files uploaded</option>';
+                return;
+            }
+
+            files.forEach(function(file) {
+                const option = document.createElement("option");
+                option.value = file.file_name;
+                option.textContent = file.file_name;
+                select.appendChild(option);
+            });
+        }
+
+        function buildFileCardHtml(file) {
+            const ext = String(file.file_ext || "").toLowerCase();
+            const isImage = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"].includes(ext);
+            const onClass = Number(file.enabled) === 1 ? "on" : "off";
+            const nextValue = Number(file.enabled) === 1 ? "off" : "on";
+            const label = Number(file.enabled) === 1 ? "ON" : "OFF";
+            const safeName = encodeURIComponent(file.file_name);
+
+            let html = "";
+            html += '<div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:10px;">';
+            html += '<div style="font-weight:700; word-break:break-word;">' + escapeHtml(file.file_name || "") + "</div>";
+            html += '<button type="button" class="toggle-switch ' + onClass + '" onclick="toggleFileEnabled(\'' + safeName + "', '" + nextValue + '\')">';
+            html += '<span class="switch-knob"></span>';
+            html += '<span class="switch-text">' + label + "</span>";
+            html += "</button>";
+            html += "</div>";
+
+            html += '<div class="admin-grid-2" style="margin-bottom:12px;">';
+            html += "<div><label>Play seconds</label><input type=\"number\" min=\"1\" value=\"" + Number(file.play_seconds || 6) + "\" id=\"sec_" + safeName + "\"></div>";
+            html += "<div><label>Play order</label><input type=\"number\" min=\"0\" value=\"" + Number(file.play_order || 0) + "\" id=\"ord_" + safeName + "\"></div>";
+            html += "</div>";
+
+            html += '<div class="admin-inline-actions" style="margin-bottom:12px;">';
+            html += '<label style="margin:0;"><input type="checkbox" id="msg_' + safeName + '" ' + (Number(file.show_bottom_messages || 0) === 1 ? "checked" : "") + '> Show Kinatwa Messages</label>';
+            html += "</div>";
+
+            html += '<div class="admin-inline-actions" style="margin-bottom:12px;">';
+            html += '<a class="btn small" href="/kinatwa/uploads/KINAT/' + safeName + '" target="_blank">Preview</a>';
+            html += '<button type="button" class="btn small" onclick="playFileFirst(\'' + safeName + '\')">Play First</button>';
+            html += '<button type="button" class="btn small secondary" onclick="saveFileSettings(\'' + safeName + '\')">Save Settings</button>';
+            if (isImage) {
+                html += '<button type="button" class="btn small secondary" onclick="openImageEditor(\'' + safeName + '\')">Edit</button>';
+            }
+            html += '<button type="button" class="btn small danger-btn" onclick="deleteFile(\'' + safeName + '\')">Delete</button>';
+            html += "</div>";
+
+            return html;
+        }
+
+        function renderFiles(files) {
+            const filesContainer = byId("filesContainer");
+            if (!filesContainer) return;
+
+            filesContainer.innerHTML = "";
+
+            if (!files || !files.length) {
+                filesContainer.innerHTML = "<p>No files uploaded yet.</p>";
+                return;
+            }
+
+            files.forEach(function(file) {
+                const card = document.createElement("div");
+                card.className = "file-box";
+                card.style.display = "block";
+                card.innerHTML = buildFileCardHtml(file);
+                filesContainer.appendChild(card);
+            });
+        }
+
+        async function saveFileSettings(encodedName) {
+            try {
+                const fd = new FormData();
+                fd.append("file_name", decodeURIComponent(encodedName));
+                fd.append("play_seconds", byId("sec_" + encodedName).value);
+                fd.append("play_order", byId("ord_" + encodedName).value);
+                fd.append("show_bottom_messages", byId("msg_" + encodedName).checked ? "1" : "0");
+
+                const data = await jsonPost("/kinatwa/backend/update_file_settings.php", fd);
+                showStatus(data.message, data.ok);
+                showToast(data.message, data.ok ? "success" : "danger");
+                if (data.ok) await loadAdminData(true);
+            } catch (err) {
+                showToast("Save settings failed: " + err.message, "danger");
+            }
+        }
+
+        async function toggleFileEnabled(encodedName, value) {
+            try {
+                const fd = new FormData();
+                fd.append("file_name", decodeURIComponent(encodedName));
+                fd.append("toggle_enabled", value);
+
+                const data = await jsonPost("/kinatwa/backend/toggle_file.php", fd);
+                showStatus(data.message, data.ok);
+                showToast(data.message, data.ok ? "success" : "danger");
+                if (data.ok) await loadAdminData(true);
+            } catch (err) {
+                showToast("Toggle failed: " + err.message, "danger");
+            }
+        }
+
+        async function playFileFirst(encodedName) {
+            try {
+                const fd = new FormData();
+                fd.append("selected_priority_file", decodeURIComponent(encodedName));
+                fd.append("priority_action", "play_now");
+                fd.append("priority_play_type", "loop");
+                fd.append("priority_minutes", "5");
+                fd.append("priority_time", "");
+
+                const data = await jsonPost("/kinatwa/backend/set_priority_play.php", fd);
+                showStatus(data.message, data.ok);
+                showToast(data.message, data.ok ? "success" : "danger");
+                if (data.ok) await loadAdminData(true);
+            } catch (err) {
+                showToast("Play first failed: " + err.message, "danger");
+            }
+        }
+
+        async function deleteFile(encodedName) {
+            if (!confirm("Delete this file?")) return;
+
+            try {
+                const fd = new FormData();
+                fd.append("file_name", decodeURIComponent(encodedName));
+
+                const data = await jsonPost("/kinatwa/backend/delete_file.php", fd);
+                showStatus(data.message, data.ok);
+                showToast(data.message, data.ok ? "success" : "danger");
+                if (data.ok) await loadAdminData(true);
+            } catch (err) {
+                showToast("Delete failed: " + err.message, "danger");
+            }
+        }
+
+        const generateForm = byId("generateCodeForm");
+        if (generateForm) {
+            generateForm.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                try {
+                    const email = byId("intended_email").value.trim();
+                    if (!email) {
+                        showToast("Enter the email first.", "warning");
+                        return;
+                    }
+
+                    const fd = new FormData();
+                    fd.append("intended_username", byId("intended_username").value.trim());
+                    fd.append("intended_email", email);
+
+                    const data = await jsonPost("/kinatwa/backend/generate_code.php", fd);
+                    showStatus(data.message, data.ok);
+                    showToast(data.message, data.ok ? "success" : "danger");
+
+                    if (data.ok) {
+                        byId("generatedCodeBox").textContent = "Generated code: " + data.code + " (for " + email + ")";
+                        await loadAdminData(true);
+                    }
+                } catch (err) {
+                    showToast("Generate code failed: " + err.message, "danger");
+                }
+            });
+        }
+
+        async function approveRequest(id, decision) {
+            try {
+                const fd = new FormData();
+                fd.append("request_id", id);
+                fd.append("decision", decision);
+
+                const data = await jsonPost("/kinatwa/backend/approve_code.php", fd);
+                showStatus(data.message, data.ok);
+                showToast(data.message, data.ok ? "success" : "danger");
+                if (data.ok) await loadAdminData(true);
+            } catch (err) {
+                showToast("Approve request failed: " + err.message, "danger");
+            }
+        }
+
+        async function deleteAdmin(id) {
+            if (!confirm("Delete this admin account?")) return;
+
+            try {
+                const fd = new FormData();
+                fd.append("admin_id", id);
+
+                const data = await jsonPost("/kinatwa/backend/delete_admin.php", fd);
+                showStatus(data.message, data.ok);
+                showToast(data.message, data.ok ? "success" : "danger");
+                if (data.ok) await loadAdminData(true);
+            } catch (err) {
+                showToast("Delete admin failed: " + err.message, "danger");
+            }
+        }
+
+        const priorityForm = byId("priorityForm");
+        if (priorityForm) {
+            priorityForm.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                try {
+                    const fd = new FormData(this);
+
+                    const editor = byId("editorArea");
+                    if (editor) {
+                        editor.innerHTML = "";
+                    }
+
+                    const data = await jsonPost("/kinatwa/backend/set_priority_play.php", fd);
+                    showStatus(data.message, data.ok);
+                    showToast(data.message, data.ok ? "success" : "danger");
+                    if (data.ok) await loadAdminData(true);
+                } catch (err) {
+                    showToast("Display control failed: " + err.message, "danger");
+                }
+            });
+        }
+
+        const messageForm = byId("messageForm");
+        if (messageForm) {
+            messageForm.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                try {
+                    const editor = byId("editorArea");
+                    byId("admin_message_html").value = editor.innerHTML;
+                    byId("admin_message_text").value = editor.innerText;
+
+                    const fd = new FormData(this);
+                    const data = await jsonPost("/kinatwa/backend/send_admin_message.php", fd);
+                    showStatus(data.message, data.ok);
+                    showToast(data.message, data.ok ? "success" : "danger");
+
+                    if (data.ok) {
+                        await loadAdminData(true);
+                    }
+                } catch (err) {
+                    showToast("Message failed: " + err.message, "danger");
+                }
+            });
+        }
+
+        const uploadForm = byId("uploadForm");
+        if (uploadForm) {
+            uploadForm.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                try {
+                    const fd = new FormData(this);
+                    const data = await jsonPost("/kinatwa/backend/upload_file.php", fd);
+                    showStatus(data.message, data.ok);
+                    showToast(data.message, data.ok ? "success" : "danger");
+
+                    if (data.ok) {
+                        this.reset();
+                        await loadAdminData(true);
+                    }
+                } catch (err) {
+                    showToast("Upload failed: " + err.message, "danger");
+                }
+            });
+        }
+
+        const changePasswordForm = byId("changePasswordForm");
+        if (changePasswordForm) {
+            changePasswordForm.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                try {
+                    const fd = new FormData(this);
+                    const data = await jsonPost("/kinatwa/backend/change_password.php", fd);
+                    showStatus(data.message, data.ok);
+                    showToast(data.message, data.ok ? "success" : "danger");
+                    if (data.ok) this.reset();
+                } catch (err) {
+                    showToast("Change password failed: " + err.message, "danger");
+                }
+            });
+        }
+
+        function openDeleteAccountPanel() {
+            const panel = byId("deleteAccountPanel");
+            if (panel) panel.classList.toggle("hidden-soft");
+        }
+
+        const deleteAccountForm = byId("deleteMyAccountForm");
+        if (deleteAccountForm) {
+            deleteAccountForm.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                if (byId("delete_unique_code").value.trim().toUpperCase() !== "JMSAK") {
+                    showToast("Unique code is incorrect.", "danger");
+                    return;
+                }
+
+                try {
+                    const fd = new FormData(this);
+                    const data = await jsonPost("/kinatwa/backend/delete_my_account.php", fd);
+                    showStatus(data.message, data.ok);
+                    showToast(data.message, data.ok ? "success" : "danger");
+
+                    if (data.ok) {
+                        setTimeout(function() {
+                            window.location.href = "/kinatwa/login.html";
+                        }, 1200);
+                    }
+                } catch (err) {
+                    showToast("Delete account failed: " + err.message, "danger");
+                }
+            });
+        }
+
+        const restoreForm = byId("restoreAccountForm");
+        if (restoreForm) {
+            restoreForm.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                if (!byId("restore_username").value || !byId("restore_email").value) {
+                    showToast("Select a deleted account first.", "warning");
+                    return;
+                }
+
+                try {
+                    const fd = new FormData(this);
+                    const data = await jsonPost("/kinatwa/backend/restore_deleted_account.php", fd);
+                    showStatus(data.message, data.ok);
+                    showToast(data.message, data.ok ? "success" : "danger");
+
+                    if (data.ok) {
+                        this.reset();
+                        byId("deleted_account_select").value = "";
+                        await loadAdminData(true);
+                    }
+                } catch (err) {
+                    showToast("Restore failed: " + err.message, "danger");
+                }
+            });
+        }
+
+        async function logoutNow() {
+            try {
+                await fetch("/kinatwa/backend/logout.php");
+            } catch (err) {}
+            window.location.href = "/kinatwa/login.html";
+        }
+
+        function openImageEditor(encodedName) {
+            currentEditFile = decodeURIComponent(encodedName);
+            currentMoveX = 0;
+            currentMoveY = 0;
+
+            byId("editFileName").textContent = currentEditFile;
+            byId("editWidthScale").value = "1";
+            byId("editHeightScale").value = "1";
+            byId("editMoveX").value = "0";
+            byId("editMoveY").value = "0";
+            byId("editWidthValue").textContent = "1.00";
+            byId("editHeightValue").textContent = "1.00";
+            byId("editMoveXValue").textContent = "0";
+            byId("editMoveYValue").textContent = "0";
+
+            const img = byId("imageEditPreview");
+            img.src = "/kinatwa/uploads/KINAT/" + encodeURIComponent(currentEditFile) + "?ts=" + Date.now();
+
+            byId("imageEditorModal").classList.add("show");
+            applyPreviewTransform();
+        }
+
+        function closeImageEditor() {
+            byId("imageEditorModal").classList.remove("show");
+        }
+
+        function resetEditorImage() {
+            byId("editWidthScale").value = "1";
+            byId("editHeightScale").value = "1";
+            byId("editMoveX").value = "0";
+            byId("editMoveY").value = "0";
+            applyPreviewTransform();
+        }
+
+        function applyPreviewTransform() {
+            const img = byId("imageEditPreview");
+            if (!img) return;
+
+            const widthScale = parseFloat(byId("editWidthScale").value || "1");
+            const heightScale = parseFloat(byId("editHeightScale").value || "1");
+            const moveX = parseInt(byId("editMoveX").value || "0", 10);
+            const moveY = parseInt(byId("editMoveY").value || "0", 10);
+
+            currentMoveX = moveX;
+            currentMoveY = moveY;
+
+            byId("editWidthValue").textContent = widthScale.toFixed(2);
+            byId("editHeightValue").textContent = heightScale.toFixed(2);
+            byId("editMoveXValue").textContent = String(moveX);
+            byId("editMoveYValue").textContent = String(moveY);
+
+            img.style.transform = "translate(" + moveX + "px, " + moveY + "px) scale(" + widthScale + ", " + heightScale + ")";
+        }
+
+        ["editWidthScale", "editHeightScale", "editMoveX", "editMoveY"].forEach(function(id) {
+            document.addEventListener("input", function(e) {
+                if (e.target.id === id) {
+                    applyPreviewTransform();
+                }
+            });
+        });
+
+        const previewImg = byId("imageEditPreview");
+        if (previewImg) {
+            previewImg.addEventListener("mousedown", function(e) {
+                dragging = true;
+                previewImg.classList.add("dragging");
+                dragStartX = e.clientX - currentMoveX;
+                dragStartY = e.clientY - currentMoveY;
+            });
+        }
+
+        document.addEventListener("mousemove", function(e) {
+            if (!dragging) return;
+
+            const moveX = e.clientX - dragStartX;
+            const moveY = e.clientY - dragStartY;
+
+            byId("editMoveX").value = String(moveX);
+            byId("editMoveY").value = String(moveY);
+
+            applyPreviewTransform();
+        });
+
+        document.addEventListener("mouseup", function() {
+            dragging = false;
+            const p = byId("imageEditPreview");
+            if (p) p.classList.remove("dragging");
+        });
+
+        async function saveEditedImage() {
+            if (!currentEditFile) return;
+
+            try {
+                const fd = new FormData();
+                fd.append("resize_file_name", currentEditFile);
+                fd.append("width_scale", byId("editWidthScale").value);
+                fd.append("height_scale", byId("editHeightScale").value);
+                fd.append("move_x", byId("editMoveX").value);
+                fd.append("move_y", byId("editMoveY").value);
+
+                const data = await jsonPost("/kinatwa/backend/save_resized_image.php", fd);
+                showStatus(data.message, data.ok);
+                showToast(data.message, data.ok ? "success" : "danger");
+
+                if (data.ok) {
+                    closeImageEditor();
+                    await loadAdminData(true);
+                }
+            } catch (err) {
+                showToast("Save failed: " + err.message, "danger");
+            }
+        }
+
+        async function loadAdminData(forceFull) {
+            const res = await fetch("/kinatwa/backend/admin_data.php?ts=" + Date.now(), {
+                cache: "no-store"
+            });
+            const data = await res.json();
+            latestAdminData = data;
+
+            if (!data.ok) {
+                showToast(data.message || "Please login first.", "danger");
+                setTimeout(function() {
+                    window.location.href = "/kinatwa/login.html";
+                }, 1000);
+                return;
+            }
+
+            currentAdminRole = Number(data.admin_role || 2);
+            currentAdminId = Number(data.admin_id || 0);
+
+            renderMainMiniPanel(data);
+
+            if (forceFull || data.notifications_hash !== lastNotificationsHash || !lastNotificationsHash) {
+                renderNotifications(data.notifications || [], data.unread_notification_count || 0);
+                lastNotificationsHash = data.notifications_hash || JSON.stringify(data.notifications || []);
+            }
+
+            if (forceFull || data.requests_hash !== lastRequestsHash || !lastRequestsHash) {
+                renderActiveCodes(data.active_codes || []);
+                renderPendingRequests(data.pending_requests || []);
+                renderRequestPopup(data.pending_requests || []);
+                lastRequestsHash = data.requests_hash || JSON.stringify(data.pending_requests || []);
+            }
+
+            if (forceFull || data.admins_hash !== lastAdminsHash || !lastAdminsHash) {
+                renderAdmins(data.admins || []);
+                renderDeleteAssigneeOptions(data.admins || []);
+                renderDeletedAccountsDropdown(data.deleted_accounts || []);
+                lastAdminsHash = data.admins_hash || JSON.stringify(data.admins || []);
+            }
+
+            const activeElement = document.activeElement;
+            const userBusyInFiles = activeElement && activeElement.closest("#filesContainer");
+            const userBusyInEditor = activeElement && activeElement.closest("#messageForm");
+            const userBusyInImageEditor = activeElement && activeElement.closest("#imageEditorModal");
+
+            if (forceFull || ((data.files_hash !== lastFilesHash || !lastFilesHash) && !userBusyInFiles && !userBusyInEditor && !userBusyInImageEditor)) {
+                renderFiles(data.files || []);
+                renderPriorityOptions(data.files || []);
+                lastFilesHash = data.files_hash || JSON.stringify(data.files || []);
+            }
+
+            renderDisplayStateInfo(data.display_state_info || {});
+
+            const cardSecurity = byId("card-security");
+            const cardMain = byId("card-main-admin-account");
+
+            if (currentAdminRole !== 1) {
+                if (cardSecurity) cardSecurity.style.display = "none";
+                if (cardMain) cardMain.style.display = "none";
+                toggleRequestPopup(false);
+            } else {
+                if (cardSecurity) cardSecurity.style.display = "";
+                if (cardMain) cardMain.style.display = "";
+            }
+
+            if (data.email_missing && !emailPromptShown) {
+                emailPromptShown = true;
+                setTimeout(function() {
+                    openEmailModal(data.admin_email || "");
+                }, 500);
+            }
+        }
+
+        setInterval(function() {
+            loadAdminData(false);
+        }, 5000);
+
+        loadAdminData(true);
+    </script>
+
+    <script src="/kinatwa/static/js/home.js"></script>
+</body>
+
+</html>

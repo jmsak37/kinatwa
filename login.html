@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinatwa Sacco - Login</title>
+
+    <link rel="stylesheet" href="/kinatwa/static/css/style.css">
+    <link id="favicon" rel="icon" type="image/png" href="/kinatwa/static/assets/kinatwa-icon.png">
+
+    <style>
+        .same-row-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+        }
+        
+        .same-row-actions .btn {
+            width: 100%;
+            text-align: center;
+            padding: 12px 18px;
+        }
+        
+        .toast-wrap {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .toast {
+            min-width: 280px;
+            max-width: 420px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+            margin-bottom: 10px;
+            animation: fadeInOut 3s ease forwards;
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #138a36, #1cad49);
+        }
+        
+        .toast.danger {
+            background: linear-gradient(135deg, #b91c1c, #dc2626);
+        }
+        
+        .toast.warning {
+            background: linear-gradient(135deg, #b45309, #d97706);
+        }
+        
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            15% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            85% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const faviconLink = document.getElementById("favicon");
+            const faviconPath = "/kinatwa/static/assets/kinatwa-icon.png";
+
+            function generateFallbackIcon() {
+                const svg = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+                        <rect width="64" height="64" rx="12" ry="12" fill="#0b6b3a"/>
+                        <circle cx="32" cy="22" r="10" fill="#ffffff"/>
+                        <path d="M20 42c2-6 8-9 12-9s10 3 12 9" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+                        <text x="32" y="58" text-anchor="middle" font-size="12" font-family="Arial, sans-serif" font-weight="bold" fill="#ffffff">KS</text>
+                    </svg>
+                `;
+                return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+            }
+
+            const testImage = new Image();
+            testImage.onload = function() {
+                faviconLink.href = faviconPath;
+            };
+            testImage.onerror = function() {
+                faviconLink.href = generateFallbackIcon();
+            };
+            testImage.src = faviconPath;
+        });
+
+        function showToast(message, type = "success") {
+            const wrap = document.getElementById("toastWrap");
+            const div = document.createElement("div");
+            div.className = "toast " + type;
+            div.textContent = message;
+            wrap.appendChild(div);
+            setTimeout(() => div.remove(), 3200);
+        }
+    </script>
+</head>
+
+<body>
+    <div id="toastWrap" class="toast-wrap"></div>
+
+    <header class="main-header">
+        <h1>KINATWA SACCO</h1>
+    </header>
+
+    <main class="container">
+        <div class="card form-card">
+            <h2>Admin Login</h2>
+
+            <form id="loginForm">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+
+                <div class="same-row-actions">
+                    <button type="submit" class="btn">Login</button>
+                    <a class="btn secondary" href="/kinatwa/register.html">Create Account</a>
+                    <a class="btn danger-btn" href="/kinatwa/index.html">Back Home</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            try {
+                const fd = new FormData(this);
+                const res = await fetch("/kinatwa/backend/login.php", {
+                    method: "POST",
+                    body: fd
+                });
+
+                const data = await res.json();
+                showToast(data.message, data.ok ? "success" : "danger");
+
+                if (data.ok) {
+                    setTimeout(() => {
+                        window.location.href = "/kinatwa/admin.html";
+                    }, 1000);
+                }
+            } catch (err) {
+                showToast("Login failed: " + err.message, "danger");
+            }
+        });
+    </script>
+
+    <script src="/kinatwa/static/js/home.js"></script>
+</body>
+
+</html>

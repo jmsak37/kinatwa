@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinatwa Sacco</title>
+
+    <link rel="stylesheet" href="/kinatwa/static/css/style.css">
+    <link rel="icon" type="image/x-icon" href="/kinatwa/static/assets/kinatwa-icon.ico">
+    <link rel="icon" type="image/png" href="/kinatwa/static/assets/kinatwa-icon.png">
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const faviconLink = document.getElementById("favicon");
+            const faviconPath = "/kinatwa/static/assets/kinatwa-icon.png";
+
+            function generateFallbackIcon() {
+                const svg = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+                        <rect width="64" height="64" rx="12" ry="12" fill="#0b6b3a"/>
+                        <circle cx="32" cy="22" r="10" fill="#ffffff"/>
+                        <path d="M20 42c2-6 8-9 12-9s10 3 12 9" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+                        <text x="32" y="58" text-anchor="middle" font-size="12" font-family="Arial, sans-serif" font-weight="bold" fill="#ffffff">KS</text>
+                    </svg>
+                `;
+                return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+            }
+
+            const testImage = new Image();
+            testImage.onload = function() {
+                faviconLink.href = faviconPath;
+            };
+            testImage.onerror = function() {
+                faviconLink.href = generateFallbackIcon();
+            };
+            testImage.src = faviconPath;
+        });
+    </script>
+</head>
+
+<body>
+    <header class="main-header">
+        <h1>KINATWA SACCO</h1>
+    </header>
+
+    <main class="container">
+        <div class="display-screen">
+            <div id="playerArea" class="player-area big-display">
+                <div class="loading-card">
+                    <h2>Loading display...</h2>
+                    <p>Please wait.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorPopup" class="error-popup hidden" style="display:none !important;">
+            <div class="error-popup-card">
+                <div class="error-popup-title">Playback Error</div>
+                <div id="errorPopupMessage" class="error-popup-message"></div>
+                <button class="error-popup-btn" onclick="closeErrorPopup()">Close</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        window.DOCUMENT_PLAYLIST = [];
+        window.PLAYBACK_ERRORS = [];
+        window.DISPLAY_REFRESH_TOKEN = 1;
+        window.IS_MAIN_DISPLAY = true;
+
+        async function loadInitialDisplayData() {
+            try {
+                const res = await fetch("/kinatwa/backend/get_playlist.php?ts=" + Date.now(), {
+                    cache: "no-store"
+                });
+
+                if (!res.ok) {
+                    throw new Error("Failed to load playlist from backend.");
+                }
+
+                const data = await res.json();
+
+                window.DOCUMENT_PLAYLIST = Array.isArray(data.playlist) ? data.playlist : [];
+                window.PLAYBACK_ERRORS = [];
+                window.DISPLAY_REFRESH_TOKEN = Number(data.refresh_token || 1);
+            } catch (err) {
+                window.DOCUMENT_PLAYLIST = [];
+                window.PLAYBACK_ERRORS = [];
+            }
+        }
+
+        (async function() {
+            await loadInitialDisplayData();
+
+            const s1 = document.createElement("script");
+            s1.src = "/kinatwa/static/js/home.js";
+            document.body.appendChild(s1);
+
+            const s2 = document.createElement("script");
+            s2.src = "/kinatwa/static/js/player.js";
+            document.body.appendChild(s2);
+        })();
+    </script>
+</body>
+
+</html>
